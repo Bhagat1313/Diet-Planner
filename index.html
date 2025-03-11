@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diet Plan App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        #searchBar {
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Diet Plan Manager</h2>
+    <form id="dietForm">
+        <input type="text" id="name" placeholder="Diet Plan Name" required>
+        <input type="number" id="calories" placeholder="Calories" required>
+        <input type="text" id="category" placeholder="Category" required>
+        <button type="submit">Add Diet Plan</button>
+    </form>
+    <input type="text" id="searchBar" placeholder="Search by category...">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Calories</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody id="dietList"></tbody>
+    </table>
+    <script>
+        const API_URL = 'http://localhost:3000/api/dietplans';
+        
+        async function fetchDietPlans(searchQuery = "") {
+            let url = API_URL;
+            if (searchQuery) {
+                url += `/search?category=${searchQuery}`;
+            }
+            const response = await fetch(url);
+            const data = await response.json();
+            const tableBody = document.getElementById("dietList");
+            tableBody.innerHTML = "";
+            data.forEach(plan => {
+                const row = `<tr>
+                                <td>${plan.name}</td>
+                                <td>${plan.calories}</td>
+                                <td>${plan.category}</td>
+                             </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+        
+        document.getElementById("dietForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const name = document.getElementById("name").value;
+            const calories = document.getElementById("calories").value;
+            const category = document.getElementById("category").value;
+            
+            await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, calories, category })
+            });
+            
+            document.getElementById("dietForm").reset();
+            fetchDietPlans(); // Refresh list
+        });
+        
+        document.getElementById("searchBar").addEventListener("input", function() {
+            const searchQuery = this.value.trim();
+            fetchDietPlans(searchQuery);
+        });
+        
+        fetchDietPlans(); // Load diet plans on page load
+    </script>
+</body>
+</html>
